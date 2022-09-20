@@ -1,6 +1,7 @@
 import telebot
 from decouple import config
 from telebot.types import Message
+from lowprice_command import lowprice_command
 
 
 SECRET_KEY = config("SECRET_KEY")
@@ -16,7 +17,7 @@ def get_text_messages(message: Message):
         pass
 
     if message.text == '/lowprice':
-        pass
+        lowprice_command(message, bot)
 
     if message.text == '/bestdeal':
         pass
