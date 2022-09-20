@@ -1,6 +1,7 @@
 import telebot
 from decouple import config
 from telebot.types import Message
+from help_command import help_command
 
 
 SECRET_KEY = config("SECRET_KEY")
@@ -13,25 +14,29 @@ def get_text_messages(message: Message):
         bot.send_message(message.from_user.id, "That's a hello-world message for beginning of a project "
                                                "that is about to happen.")
 
-    if message.text == '/start':
+    elif message.text == '/start':
         bot.send_message(message.from_user.id,
                          'Привет! Я Аркаша. Я люблю путешествовать и знаю много отелей, если тебе интересно, '
                          'то давай найдем тебе отельчик:)\nНапиши /help, чтобы познакомиться с доступными командами.')
 
-    if message.text == '/help':
+    elif message.text == '/help':
+        help_command(message.chat, bot)
+
+    elif message.text == '/lowprice':
         pass
 
-    if message.text == '/lowprice':
+    elif message.text == '/bestdeal':
         pass
 
-    if message.text == '/bestdeal':
+    elif message.text == '/highprice':
         pass
 
-    if message.text == '/highprice':
+    elif message.text == '/history':
         pass
 
-    if message.text == '/history':
-        pass
+    else:
+        bot.send_message(message.from_user.id,
+                         "Неизвестная команда, попробуй написать /help, чтоб мы с тобой были на одной волне!:)")
 
 
 bot.polling(none_stop=True, interval=0)
