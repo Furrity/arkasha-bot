@@ -12,6 +12,12 @@ def get_text_messages(message: Message):
     if message.text.lower() == 'привет' or message.text == '/hello-world':
         bot.send_message(message.from_user.id, "That's a hello-world message for beginning of a project "
                                                "that is about to happen.")
+
+    if message.text == '/start':
+        bot.send_message(message.from_user.id,
+                         'Привет! Я Аркаша. Я люблю путешествовать и знаю много отелей, если тебе интересно, '
+                         'то давай найдем тебе отельчик:)\nНапиши /help, чтобы познакомиться с доступными командами.')
+
     if message.text == '/help':
         pass
 
