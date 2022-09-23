@@ -3,4 +3,4 @@ from . import (lowprice,
                bestdeal,
                history)
 
-from help import help_command
+from .help import help_command
