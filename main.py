@@ -1,7 +1,6 @@
 import telebot
 from decouple import config
 from telebot.types import Message
-from help_command import help_command
 import commands
 
 
@@ -21,7 +20,7 @@ def get_text_messages(message: Message):
                          'то давай найдем тебе отельчик:)\nНапиши /help, чтобы познакомиться с доступными командами.')
 
     elif message.text == '/help':
-        help_command(message.chat, bot)
+        commands.help_command(message.chat, bot)
 
     elif message.text == '/lowprice':
         pass
