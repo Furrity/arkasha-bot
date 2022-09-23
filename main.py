@@ -1,6 +1,7 @@
 import telebot
 from decouple import config
 from telebot.types import Message
+import commands
 
 
 SECRET_KEY = config("SECRET_KEY")
