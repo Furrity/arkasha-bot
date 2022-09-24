@@ -3,5 +3,3 @@ from . import (lowprice,
                bestdeal,
                history,
                help)
-
-from .lowprice import lowprice_command
