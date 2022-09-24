@@ -16,8 +16,6 @@ def get_city(city_name: str):
 
     response = requests.request("GET", url, headers=headers, params=querystring)
     result = json.loads(response.text)
-    with open('result.json', 'w') as file:
-        json.dump(result, file, indent=4)
     for option in result['suggestions'][0]['entities']:
         if option['type'] == 'CITY':
             options.append({
@@ -25,4 +23,3 @@ def get_city(city_name: str):
                 'destinationId': option['destinationId']
             })
     return options
-
