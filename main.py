@@ -1,11 +1,6 @@
-import telebot
-from decouple import config
 from telebot.types import Message
 import commands
-
-
-SECRET_KEY = config("SECRET_KEY")
-bot = telebot.TeleBot(SECRET_KEY)
+from loader import bot
 
 
 @bot.message_handler(content_types=['text'])
