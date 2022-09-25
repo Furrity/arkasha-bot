@@ -16,10 +16,18 @@ def get_city(city_name: str):
 
     response = requests.request("GET", url, headers=headers, params=querystring)
     result = json.loads(response.text)
-    for option in result['suggestions'][0]['entities']:
-        if option['type'] == 'CITY':
-            options.append({
-                'name': option['name'],
-                'destinationId': option['destinationId']
-            })
+    try:
+        for option in result['suggestions'][0]['entities']:
+            if option['type'] == 'CITY':
+                options.append({
+                    'name': clean_html(option['caption']),
+                    'destinationId': option['destinationId']
+                })
+    except TypeError:
+        return get_city(city_name)
     return options
+
+
+def clean_html(text_w_html):
+    import re
+    return re.sub(r'<.*?>', '', text_w_html)

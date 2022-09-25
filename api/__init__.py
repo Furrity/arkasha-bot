@@ -1,1 +1,1 @@
-from api_request import *
+from .api_request import *
