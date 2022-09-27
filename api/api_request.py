@@ -140,14 +140,3 @@ def get_stay_len(check_in: str, check_out: str) -> int:
     d1 = date(int(check_in_l[0]), int(check_in_l[1]), int(check_in_l[2]))
     d2 = date(int(check_out_l[0]), int(check_out_l[1]), int(check_out_l[2]))
     return (d2 - d1).days
-
-
-print(
-    get_lowprice('2022-10-11',
-                 '2022-10-14',
-                 '332483',
-                 10,
-                 2,
-                 52.51384,
-                 13.35008)
-)
