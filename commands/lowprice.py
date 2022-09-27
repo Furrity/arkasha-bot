@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List
 from telebot import types
 from states import Lowprice
 from loader import bot
@@ -79,8 +79,12 @@ def validate_city(message: types.Message):
         bot.send_message(message.from_user.id,
                          'Отлично, выбрали. Сколько отелей показать?\n'
                          'Давай только не слишком много, максимум 10.')
+
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-            data['destinationId'] = options['destinationId']
+            data['destinationId'] = options[0]['destinationId']
+            data['c_latitude'] = options[0]['latitude']
+            data['c_longitude'] = options[0]['longitude']
+
         bot.set_state(message.from_user.id,
                       Lowprice.amount_hotels,
                       message.chat.id)
@@ -91,7 +95,7 @@ def validate_city(message: types.Message):
             data['options'] = options
         bot.send_message(message.from_user.id,
                          "Вот какие города я нашел:\n")
-        bot.send_message(message.from_user.id, make_sendable_options(options))
+        bot.send_message(message.from_user.id, make_options_to_send(options))
         bot.send_message(message.from_user.id,
                          'Так какой город выбираешь?')
         bot.send_message(message.from_user.id,
@@ -113,6 +117,8 @@ def pick_city_option(message: types.Message):
                              'Выбрали город:\n{}'.format(city_chosen))
             with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
                 data['destinationId'] = user_option_dict['destinationId']
+                data['c_latitude'] = user_option_dict['latitude']
+                data['c_longitude'] = user_option_dict['longitude']
 
             bot.send_message(message.from_user.id,
                              'Отлично, выбрали. Сколько отелей показать?\n'
@@ -177,7 +183,6 @@ def get_photo_amount(message: types.Message):
                              'Понял, не будем фотки искать:)')
             with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
                 data['photo_amount'] = photo_amount
-
             give_result(message.from_user.id, message.chat.id)
             bot.delete_state(message.from_user.id, message.chat.id)
 
@@ -194,10 +199,35 @@ def give_result(user_id: int, chat_id: int):
         check_in_date = data['check_in']
         check_out_date = data['check_out']
         destination_id = data['destinationId']
-        htl_amnt = data['amount']
+        amount_hotels_options = data['amount']
         photo_amount = data['photo_amount']
+        c_latitude = data['c_latitude']
+        c_longitude = data['c_longitude']
 
-        # request to api
+        hotels: List[dict] = api.get_lowprice(check_in_date,
+                                              check_out_date,
+                                              destination_id,
+                                              amount_hotels_options,
+                                              photo_amount,
+                                              c_latitude,
+                                              c_longitude)
+
+        for hotel in hotels:
+            message = ''
+            message += hotel['name'] + '\n'
+            message += 'Адрес: ' + hotel['address'] + '\n'
+            message += 'Находится на расстоянии {} метров от центра города.\n'.format(str(hotel['distanceFromCentre']))
+            message += 'Цена за ночь составляет {}.'.format(hotel['price_per_night'])
+            if hotel['price_per_night'] == hotel['price_per_stay']:
+                message += '\n'
+            else:
+                message += ' Все проживание обойдется в {}.\n'.format(hotel['price_per_stay'])
+            message += 'Вот ссылка: ' + hotel['hotel_link']
+            bot.send_message(user_id, message)
+            if photo_amount > 0:
+                bot.send_media_group(user_id,
+                                     [types.InputMediaPhoto(photo_link) for photo_link in hotel['photo_links']],
+                                     chat_id)
 
 
 def valid_date(date_text):
@@ -226,7 +256,7 @@ def first_date_later_that_second(date_text_1, date_text_2):
     return d2 < d1
 
 
-def make_sendable_options(options: List[dict]):
+def make_options_to_send(options: List[dict]):
     result_list = []
     for i_option in range(len(options)):
         result_list.append(str(i_option + 1) + ' ' + options[i_option]['name'])
