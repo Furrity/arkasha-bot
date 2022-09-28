@@ -18,8 +18,15 @@ pip install -r /path/to/requirements.txt
 ```txt
 SECRET_KEY=YOUR_SECRET_KEY
 ```
-
 Данный ключ нужно получить у BotFather (https://telegram.me/BotFather)
+
+
+- В файл **.env** нужно прописать ключ для доступа к RapidAPI:
+```txt
+X-RapidAPI-Key=YOUR_KEY
+```
+Данный ключ можно получить на сайте с документацией (https://rapidapi.com/apidojo/api/hotels4)
+
 
 Можно начинать работать.
 

@@ -1,6 +1,7 @@
 from telebot.types import Message
 import commands
 from loader import bot
+from states import Lowprice
 
 
 @bot.message_handler(content_types=['text'])
@@ -18,7 +19,8 @@ def get_text_messages(message: Message):
         commands.help_command(message.chat, bot)
 
     elif message.text == '/lowprice':
-        pass
+        bot.set_state(message.from_user.id, Lowprice.check_in_date, message.chat.id)
+        commands.lowprice.check_in(message)
 
     elif message.text == '/bestdeal':
         pass
