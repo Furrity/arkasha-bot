@@ -4,16 +4,17 @@ import requests
 import json
 from decouple import config
 
+headers = {
+        "X-RapidAPI-Key": config("X-RapidAPI-Key"),
+        "X-RapidAPI-Host": "hotels4.p.rapidapi.com"
+    }
+
 
 def get_city(city_name: str):
     url = "https://hotels4.p.rapidapi.com/locations/v2/search"
 
     querystring = {"query": city_name, "locale": "ru_RU", "currency": "RUB"}
 
-    headers = {
-        "X-RapidAPI-Key": config("X-RapidAPI-Key"),
-        "X-RapidAPI-Host": "hotels4.p.rapidapi.com"
-    }
     options = []
 
     response = requests.request("GET", url, headers=headers, params=querystring)
@@ -45,11 +46,6 @@ def get_lowprice(check_in_date: str,
                    "checkOut": check_out_date, "adults1": "1", "sortOrder": "PRICE", "locale": "ru_RU",
                    "currency": "RUB"}
 
-    headers = {
-        "X-RapidAPI-Key": config("X-RapidAPI-Key"),
-        "X-RapidAPI-Host": "hotels4.p.rapidapi.com"
-    }
-
     response = requests.request("GET", url, headers=headers, params=querystring)
     result = json.loads(response.text)
 
@@ -65,10 +61,7 @@ def get_lowprice(check_in_date: str,
 
             options.append({
                 'name': option['name'],
-                'address':
-                    option['address']['streetAddress'] + ', ' + option['address']['locality'] + ', ' +
-                    option['address']['region'] + ' ' + option['address']['postalCode'] + ', ' +
-                    option['address']['countryName'],
+                'address': get_address(option),
 
                 'distanceFromCentre': calculate_distance(
                     option['coordinate']['lat'], option['coordinate']['lon'],
@@ -114,11 +107,6 @@ def get_photo_links(city_id: int, amount: int) -> list:
 
     querystring = {"id": str(city_id)}
 
-    headers = {
-        "X-RapidAPI-Key": config("X-RapidAPI-Key"),
-        "X-RapidAPI-Host": "hotels4.p.rapidapi.com"
-    }
-
     response = requests.request("GET", url, headers=headers, params=querystring)
 
     response_json = json.loads(response.text)
@@ -140,3 +128,7 @@ def get_stay_len(check_in: str, check_out: str) -> int:
     d1 = date(int(check_in_l[0]), int(check_in_l[1]), int(check_in_l[2]))
     d2 = date(int(check_out_l[0]), int(check_out_l[1]), int(check_out_l[2]))
     return (d2 - d1).days
+
+
+def get_address(option: dict):
+    return f"{option['address']['streetAddress']}, {option['address']['locality']}, {option['address']['region']} {option['address']['postalCode']}, {option['address']['countryName']}"
