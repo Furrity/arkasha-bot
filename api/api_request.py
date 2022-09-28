@@ -4,16 +4,17 @@ import requests
 import json
 from decouple import config
 
+headers = {
+        "X-RapidAPI-Key": config("X-RapidAPI-Key"),
+        "X-RapidAPI-Host": "hotels4.p.rapidapi.com"
+    }
+
 
 def get_city(city_name: str):
     url = "https://hotels4.p.rapidapi.com/locations/v2/search"
 
     querystring = {"query": city_name, "locale": "ru_RU", "currency": "RUB"}
 
-    headers = {
-        "X-RapidAPI-Key": config("X-RapidAPI-Key"),
-        "X-RapidAPI-Host": "hotels4.p.rapidapi.com"
-    }
     options = []
 
     response = requests.request("GET", url, headers=headers, params=querystring)
@@ -44,11 +45,6 @@ def get_lowprice(check_in_date: str,
     querystring = {"destinationId": destination_id, "pageNumber": "1", "pageSize": "25", "checkIn": check_in_date,
                    "checkOut": check_out_date, "adults1": "1", "sortOrder": "PRICE", "locale": "ru_RU",
                    "currency": "RUB"}
-
-    headers = {
-        "X-RapidAPI-Key": config("X-RapidAPI-Key"),
-        "X-RapidAPI-Host": "hotels4.p.rapidapi.com"
-    }
 
     response = requests.request("GET", url, headers=headers, params=querystring)
     result = json.loads(response.text)
@@ -113,11 +109,6 @@ def get_photo_links(city_id: int, amount: int) -> list:
     url = "https://hotels4.p.rapidapi.com/properties/get-hotel-photos"
 
     querystring = {"id": str(city_id)}
-
-    headers = {
-        "X-RapidAPI-Key": config("X-RapidAPI-Key"),
-        "X-RapidAPI-Host": "hotels4.p.rapidapi.com"
-    }
 
     response = requests.request("GET", url, headers=headers, params=querystring)
 
