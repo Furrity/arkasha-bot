@@ -61,10 +61,7 @@ def get_lowprice(check_in_date: str,
 
             options.append({
                 'name': option['name'],
-                'address':
-                    option['address']['streetAddress'] + ', ' + option['address']['locality'] + ', ' +
-                    option['address']['region'] + ' ' + option['address']['postalCode'] + ', ' +
-                    option['address']['countryName'],
+                'address': get_address(option),
 
                 'distanceFromCentre': calculate_distance(
                     option['coordinate']['lat'], option['coordinate']['lon'],
@@ -131,3 +128,7 @@ def get_stay_len(check_in: str, check_out: str) -> int:
     d1 = date(int(check_in_l[0]), int(check_in_l[1]), int(check_in_l[2]))
     d2 = date(int(check_out_l[0]), int(check_out_l[1]), int(check_out_l[2]))
     return (d2 - d1).days
+
+
+def get_address(option: dict):
+    return f"{option['address']['streetAddress']}, {option['address']['locality']}, {option['address']['region']} {option['address']['postalCode']}, {option['address']['countryName']}"
