@@ -1,4 +1,3 @@
-from typing import List
 from telebot import types
 from states import Lowprice
 from loader import bot
@@ -7,9 +6,7 @@ from utilities import *
 
 
 def check_in(message: types.Message):
-    bot.send_message(message.from_user.id,
-                     'Введи дату, когда хочешь заехать в отель в формате дд-мм-гггг\n'
-                     'Пример: 01-01-2023')
+    ask_check_in_date(message.from_user.id)
     bot.set_state(message.from_user.id, Lowprice.check_out_date, message.chat.id)
 
 
@@ -18,8 +15,7 @@ def check_out(message: types.Message):
 
     # get check in input
     if not valid_date(message.text):
-        bot.send_message(message.from_user.id,
-                         'Что-то я запутался, говорю же, мне надо в формате дд-мм-гггг')
+        ask_valid_date(message.from_user.id)
         return
 
     date = reformat_date(message.text)
@@ -27,60 +23,40 @@ def check_out(message: types.Message):
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['check_in'] = date
 
-        bot.send_message(message.from_user.id, "Дату заезда запомнил.")
-        # ask check out date
-        bot.send_message(message.from_user.id,
-                         'Введи дату, когда хочешь выехать из отеля в формате дд-мм-гггг\n'
-                         'Пример: 01-01-2023')
+        confirm_check_in_ask_check_out(message.from_user.id)
 
         bot.set_state(message.from_user.id, Lowprice.city, message.chat.id)
     else:
-        bot.send_message(message.from_user.id,
-                         "Этот день уже прошел. Машину времени не изобрели, так что давай попробуем еще раз")
-        bot.send_message(message.from_user.id,
-                         'Введи дату, когда хочешь заехать в отель в формате дд-мм-гггг\n'
-                         'Пример: 01-01-2023')
+        tell_date_passed(message.from_user.id)
+        ask_valid_date(message.from_user.id)
 
 
 @bot.message_handler(state=Lowprice.city)
 def city(message: types.Message):
     # get check out date
     if not valid_date(message.text):
-        bot.send_message(message.from_user.id,
-                         'Что-то я запутался, говорю же, мне надо в формате дд-мм-гггг')
+        ask_valid_date(message.from_user.id)
         return
 
     date = reformat_date(message.text)
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         if first_date_later_that_second(date, data['check_in']):
             data['check_out'] = date
-            bot.send_message(message.from_user.id,
-                             'Запомнил дату выезда.')
-            bot.send_message(message.from_user.id,
-                             'В какой город хочешь поехать?')
+            confirm_check_out_date_ask_city(message.from_user.id)
             bot.set_state(message.from_user.id, Lowprice.validate_city, message.chat.id)
         else:
-            bot.send_message(message.from_user.id,
-                             'Ну так быть не может, дата выезда должна быть после даты заезда:)')
-            bot.send_message(message.from_user.id,
-                             'Попробуй еще раз, введи дату выезда.\n'
-                             'Пример: 01-01-2023')
+            tell_check_out_should_be_after_check_in(message.from_user.id)
+            tell_retry_check_out_date(message.from_user.id)
 
 
 @bot.message_handler(state=Lowprice.validate_city)
 def validate_city(message: types.Message):
     options = api.get_city(message.text)
     if len(options) == 0:
-        bot.send_message(message.from_user.id,
-                         'Я не нашел городов, может поищем другой город на эти даты?\n'
-                         'Введи новый город, поищем на эти даты.\n'
-                         'Если хочешь изменить даты, то напиши /cancel и вызови команду /lowprice еще раз:)')
+        tell_found_no_cities(message.from_user.id)
 
     elif len(options) == 1:
-        bot.send_message(message.from_user.id,
-                         'Отлично, выбрали. Сколько отелей показать?\n'
-                         'Давай только не слишком много, максимум 10.')
-
+        confirm_city_ask_amount_hotels(message.from_user.id)
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['destinationId'] = options[0]['destinationId']
             data['c_latitude'] = options[0]['latitude']
@@ -94,14 +70,7 @@ def validate_city(message: types.Message):
 
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['options'] = options
-        bot.send_message(message.from_user.id,
-                         "Вот какие города я нашел:\n")
-        bot.send_message(message.from_user.id, make_options_to_send(options))
-        bot.send_message(message.from_user.id,
-                         'Так какой город выбираешь?')
-        bot.send_message(message.from_user.id,
-                         'Напиши только цифру с номером отеля')
-        bot.set_state(message.from_user.id, Lowprice.pick_city, message.chat.id)
+        tell_city_options_ask_which(message.from_user.id, options)
 
 
 @bot.message_handler(state=Lowprice.pick_city)
@@ -110,31 +79,26 @@ def pick_city_option(message: types.Message):
         options: List[dict] = data['options']
 
     if not message.text.isdigit():
-        bot.send_message(message.from_user.id,
-                         'Напиши только цифру с номером отеля')
+        ask_digit_of_hotel_only(message.from_user.id)
         return
 
     option_n = int(message.text) - 1
     try:
         user_option_dict = options[option_n]
         city_chosen = user_option_dict['name']
-        bot.send_message(message.from_user.id,
-                         'Выбрали город:\n{}'.format(city_chosen))
+        confirm_city(message.from_user.id, city_chosen)
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['destinationId'] = user_option_dict['destinationId']
             data['c_latitude'] = user_option_dict['latitude']
             data['c_longitude'] = user_option_dict['longitude']
 
-        bot.send_message(message.from_user.id,
-                         'Отлично, выбрали. Сколько отелей показать?\n'
-                         'Давай только не слишком много, максимум 10.')
+        confirm_city_ask_amount_hotels(message.from_user.id)
         bot.set_state(message.from_user.id,
                       Lowprice.amount_hotels,
                       message.chat.id)
 
     except IndexError:
-        bot.send_message(message.from_user.id,
-                         "Такого варианта не было. Попробуй еще раз.")
+        tell_not_a_city_option_chosen(message.from_user.id)
 
 
 @bot.message_handler(state=Lowprice.amount_hotels)
@@ -143,25 +107,18 @@ def amount_of_hotels(message: types.Message):
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['amount'] = int(message.text)
             bot.set_state(message.from_user.id, Lowprice.if_photos, message.chat.id)
-            bot.send_message(message.from_user.id,
-                             'Понял. Фотки вариантов показать? Напиши "да" или "нет"')
+            confirm_amount_hotels_ask_if_photos(message.from_user.id)
     else:
-        bot.send_message(message.from_user.id,
-                         'Тут что-то не так, просто напиши число от 1 до 10 и все.')
+        ask_num_1_to_10(message.from_user.id)
 
 
 @bot.message_handler(state=Lowprice.if_photos)
 def if_photos(message: types.Message):
     if message.text.lower().strip() == 'да':
-        bot.send_message(message.from_user.id,
-                         'Сколько фоток показать?')
-        bot.send_message(message.from_user.id,
-                         'Давай только не больше 10.')
-        bot.send_message(message.from_user.id,
-                         'Напиши только цифру с количеством фотографий.')
+        ask_photo_amount(message.from_user.id)
         bot.set_state(message.from_user.id, Lowprice.how_many_photos, message.chat.id)
     elif message.text.lower().strip() == 'нет':
-        bot.send_message("Понял, ищем, что есть.")
+        confirm_query(message.from_user.id)
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['photo_amount'] = 0
         give_result(message.from_user.id, message.chat.id)
@@ -171,30 +128,28 @@ def if_photos(message: types.Message):
 @bot.message_handler(state=Lowprice.how_many_photos)
 def get_photo_amount(message: types.Message):
     if not message.text.isdigit():
-        bot.send_message(message.from_user.id,
-                         'Нужно просто ввести цифру от 0 до 10, попробуй еще раз.')
+        ask_num_1_to_10(message.from_user.id)
         return
 
     photo_amount = int(message.text)
     if 0 < photo_amount <= 10:
-        bot.send_message(message.from_user.id,
-                         'Все, больше никаких расспросов, переходим к делу.')
+        confirm_query(message.from_user.id)
+
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['photo_amount'] = photo_amount
         give_result(message.from_user.id, message.chat.id)
         bot.delete_state(message.from_user.id, message.chat.id)
 
     elif photo_amount == 0:
-        bot.send_message(message.from_user.id,
-                         'Понял, не будем фотки искать:)')
+        confirm_no_photo(message.from_user.id)
+
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['photo_amount'] = photo_amount
         give_result(message.from_user.id, message.chat.id)
         bot.delete_state(message.from_user.id, message.chat.id)
 
     else:
-        bot.send_message(message.from_user.id,
-                         'Неверное количество, введи цифру от 0 до 10')
+        ask_num_1_to_10(message.from_user.id)
 
 
 def give_result(user_id: int, chat_id: int):
