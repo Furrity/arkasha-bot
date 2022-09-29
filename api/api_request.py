@@ -48,44 +48,19 @@ def get_lowprice(check_in_date: str,
 
     response = requests.request("GET", url, headers=headers, params=querystring)
     result = json.loads(response.text)
+    while not result:
+        response = requests.request("GET", url, headers=headers, params=querystring)
+        result = json.loads(response.text)
 
-    options = []
-    if result:
-        for option in result['data']['body']['searchResults']["results"][:hotels_amount]:
-            # there is a slice of results for easier navigation
+    options = parse_result(result,
+                           check_in_date,
+                           check_out_date,
+                           hotels_amount,
+                           photo_amount,
+                           c_latitude,
+                           c_longitude)
 
-            photo_links = []
-            if photo_amount > 0:
-
-                photo_links = get_photo_links(option['id'], photo_amount)
-
-            options.append({
-                'name': option['name'],
-                'address': get_address(option),
-
-                'distanceFromCentre': calculate_distance(
-                    option['coordinate']['lat'], option['coordinate']['lon'],
-                    c_latitude, c_longitude
-                ),
-
-                'price_per_night': str(option['ratePlan']['price']['exactCurrent']) + ' руб',
-
-                'price_per_stay': str(
-                    round(option['ratePlan']['price']['exactCurrent'] * get_stay_len(check_in_date, check_out_date), 2)
-                ) + ' руб',
-
-                'photo_links': photo_links,
-                'hotel_link': 'https://www.hotels.com/ho' + str(option['id'])
-            })
-        return options
-    else:
-        return get_lowprice(check_in_date,
-                            check_out_date,
-                            destination_id,
-                            hotels_amount,
-                            photo_amount,
-                            c_latitude,
-                            c_longitude)
+    return options
 
 
 def get_highprice(check_in_date: str,
@@ -103,43 +78,55 @@ def get_highprice(check_in_date: str,
 
     response = requests.request("GET", url, headers=headers, params=querystring)
     result = json.loads(response.text)
+    while not result:
+        response = requests.request("GET", url, headers=headers, params=querystring)
+        result = json.loads(response.text)
 
+    options = parse_result(result,
+                           check_in_date,
+                           check_out_date,
+                           hotels_amount,
+                           photo_amount,
+                           c_latitude,
+                           c_longitude)
+
+    return options
+
+
+def parse_result(result: dict,
+                 check_in_date: str,
+                 check_out_date: str,
+                 hotels_amount: int,
+                 photo_amount: int,
+                 c_latitude: float,
+                 c_longitude: float) -> list:
     options = []
-    if result:
-        for option in result['data']['body']['searchResults']["results"][:hotels_amount]:
-            # there is a slice of results for easier navigation
+    for option in result['data']['body']['searchResults']["results"][:hotels_amount]:
+        # there is a slice of results for easier navigation
 
-            photo_links = []
-            if photo_amount > 0:
-                photo_links = get_photo_links(option['id'], photo_amount)
+        photo_links = []
+        if photo_amount > 0:
+            photo_links = get_photo_links(option['id'], photo_amount)
 
-            options.append({
-                'name': option['name'],
-                'address': get_address(option),
+        options.append({
+            'name': option['name'],
+            'address': get_address(option),
 
-                'distanceFromCentre': calculate_distance(
-                    option['coordinate']['lat'], option['coordinate']['lon'],
-                    c_latitude, c_longitude
-                ),
+            'distanceFromCentre': calculate_distance(
+                option['coordinate']['lat'], option['coordinate']['lon'],
+                c_latitude, c_longitude
+            ),
 
-                'price_per_night': str(option['ratePlan']['price']['exactCurrent']) + ' руб',
+            'price_per_night': str(option['ratePlan']['price']['exactCurrent']) + ' руб',
 
-                'price_per_stay': str(
-                    round(option['ratePlan']['price']['exactCurrent'] * get_stay_len(check_in_date, check_out_date), 2)
-                ) + ' руб',
+            'price_per_stay': str(
+                round(option['ratePlan']['price']['exactCurrent'] * get_stay_len(check_in_date, check_out_date), 2)
+            ) + ' руб',
 
-                'photo_links': photo_links,
-                'hotel_link': 'https://www.hotels.com/ho' + str(option['id'])
-            })
-        return options
-    else:
-        return get_lowprice(check_in_date,
-                            check_out_date,
-                            destination_id,
-                            hotels_amount,
-                            photo_amount,
-                            c_latitude,
-                            c_longitude)
+            'photo_links': photo_links,
+            'hotel_link': 'https://www.hotels.com/ho' + str(option['id'])
+        })
+    return options
 
 
 def clean_html(text_w_html):
@@ -185,4 +172,5 @@ def get_stay_len(check_in: str, check_out: str) -> int:
 
 
 def get_address(option: dict):
-    return f"{option['address']['streetAddress']}, {option['address']['locality']}, {option['address']['region']} {option['address']['postalCode']}, {option['address']['countryName']}"
+    return f"{option['address']['streetAddress']}, {option['address']['locality']}, {option['address']['region']} " \
+           f"{option['address']['postalCode']}, {option['address']['countryName']}"
