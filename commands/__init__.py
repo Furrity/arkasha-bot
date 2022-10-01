@@ -1,6 +1,7 @@
 from . import (lowprice,
                highprice,
                bestdeal,
-               history)
+               history,
+               price)
 
 from .help import help_command

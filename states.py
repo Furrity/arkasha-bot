@@ -25,6 +25,17 @@ class Highprice(StatesGroup):
     how_many_photos = State()
 
 
+class UserState(StatesGroup):
+    check_in_date = State()
+    check_out_date = State()
+    city = State()
+    validate_city = State()
+    pick_city = State()
+    amount_hotels = State()
+    if_photos = State()
+    how_many_photos = State()
+
+
 bot.add_custom_filter(custom_filters.StateFilter(bot))
 
 
