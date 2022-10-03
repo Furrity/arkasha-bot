@@ -33,4 +33,17 @@ def confirm_distance_from_centre_ask_amount_of_hotels(message: types.Message):
 
 
 def give_result(user_id: int, chat_id: int):
-    pass
+    with bot.retrieve_data(user_id, chat_id) as data:
+        check_in_date = data['check_in']
+        check_out_date = data['check_out']
+        destination_id = data['destinationId']
+        price_min = data['price_min']
+        price_max = data['price_max']
+        desired_distance = data['des_distance']
+        amount_hotels_options = data['amount']
+        photo_amount = data['photo_amount']
+        c_latitude = data['c_latitude']
+        c_longitude = data['c_longitude']
+
+
+    # api request

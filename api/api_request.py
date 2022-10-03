@@ -93,6 +93,63 @@ def get_highprice(check_in_date: str,
     return options
 
 
+def best_deal(check_in_date: str,
+              check_out_date: str,
+              destination_id: str,
+              price_min: int,
+              price_max: int,
+              desired_distance: int,
+              hotels_amount: int,
+              photo_amount: int,
+              c_latitude: float,
+              c_longitude: float):
+
+    url = "https://hotels4.p.rapidapi.com/properties/list"
+
+    querystring = {"destinationId": destination_id, "pageNumber": "1", "pageSize": "25", "checkIn": check_in_date,
+                   "checkOut": check_out_date, "adults1": "1", "priceMin": price_min, "priceMax": price_max,
+                   "sortOrder": "BEST_SELLER", "locale": "ru_RU", "currency": "RUB"}
+
+    response = requests.request("GET", url, headers=headers, params=querystring)
+    result = json.loads(response.text)
+    while not result:
+        response = requests.request("GET", url, headers=headers, params=querystring)
+        result = json.loads(response.text)
+
+    options = []
+    for option in result['data']['body']['results']:
+        if len(options) >= hotels_amount:
+            return options
+
+        if not calculate_distance(c_latitude, c_longitude,
+                                  option['coordinate']['lat'], option['coordinate']['lon']) <= desired_distance:
+            continue
+        photo_links = []
+        if photo_amount > 0:
+            photo_links = get_photo_links(option['id'], photo_amount)
+
+        options.append({
+            'name': option['name'],
+            'address': get_address(option),
+
+            'distanceFromCentre': calculate_distance(
+                option['coordinate']['lat'], option['coordinate']['lon'],
+                c_latitude, c_longitude
+            ),
+
+            'price_per_night': str(option['ratePlan']['price']['exactCurrent']) + ' руб',
+
+            'price_per_stay': str(
+                round(option['ratePlan']['price']['exactCurrent'] * get_stay_len(check_in_date, check_out_date), 2)
+            ) + ' руб',
+
+            'photo_links': photo_links,
+            'hotel_link': 'https://www.hotels.com/ho' + str(option['id'])
+        })
+
+        return options
+
+
 def parse_result(result: dict,
                  check_in_date: str,
                  check_out_date: str,
