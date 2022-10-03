@@ -170,11 +170,14 @@ def get_command_and_give_result(user_id: int, chat_id: int):
 
     if command == 'highprice' or 'lowprice':
         price.give_result(user_id, chat_id)
-        bot.delete_state(user_id, chat_id)
 
     elif command == 'bestdeal':
         bestdeal.give_result(user_id, chat_id)
 
+
     # add commands here
     else:
         raise Exception("Не определена команда вызова.")
+
+    bot.delete_state(user_id, chat_id)
+

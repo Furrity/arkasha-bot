@@ -1,3 +1,4 @@
+import api
 from telebot import types
 from utilities import *
 from loader import bot
@@ -45,5 +46,30 @@ def give_result(user_id: int, chat_id: int):
         c_latitude = data['c_latitude']
         c_longitude = data['c_longitude']
 
+    hotels: List[dict] = api.best_deal(check_in_date,
+                                       check_out_date,
+                                       destination_id,
+                                       price_min,
+                                       price_max,
+                                       desired_distance,
+                                       amount_hotels_options,
+                                       photo_amount,
+                                       c_latitude,
+                                       c_longitude)
 
-    # api request
+    for hotel in hotels:
+        message = ''
+        message += hotel['name'] + '\n'
+        message += 'Адрес: ' + hotel['address'] + '\n'
+        message += 'Находится на расстоянии {} метров от центра города.\n'.format(str(hotel['distanceFromCentre']))
+        message += 'Цена за ночь составляет {}.'.format(hotel['price_per_night'])
+        if hotel['price_per_night'] == hotel['price_per_stay']:
+            message += '\n'
+        else:
+            message += ' Все проживание обойдется в {}.\n'.format(hotel['price_per_stay'])
+        message += 'Вот ссылка: ' + hotel['hotel_link']
+        bot.send_message(user_id, message)
+        if photo_amount > 0:
+            bot.send_media_group(user_id,
+                                 [types.InputMediaPhoto(photo_link) for photo_link in hotel['photo_links']],
+                                 chat_id)
