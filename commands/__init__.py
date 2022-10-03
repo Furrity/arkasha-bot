@@ -1,6 +1,6 @@
-from . import (lowprice,
-               highprice,
+from . import (common,
                bestdeal,
-               history)
+               history,
+               price)
 
 from .help import help_command
