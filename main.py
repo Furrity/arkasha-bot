@@ -1,7 +1,7 @@
 from telebot.types import Message
 import commands
 from loader import bot
-from states import Lowprice, Highprice, UserState
+from states import UserState
 
 
 @bot.message_handler(content_types=['text'])
