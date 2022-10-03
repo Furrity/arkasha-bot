@@ -37,6 +37,18 @@ def make_options_to_send(options: List[dict]):
     return result
 
 
+def valid_price_range(text: str):
+    prices_list = text.split(' ')
+    if len(prices_list) > 2 or len(prices_list) <= 1:
+        return False
+
+    for price in prices_list:
+        if not price.isdigit():
+            return False
+
+    return int(prices_list[0]) <= int(prices_list[1])
+
+
 def ask_check_in_date(user_id: int):
     bot.send_message(user_id,
                      'Введи дату, когда хочешь заехать в отель в формате дд-мм-гггг\n'
@@ -143,3 +155,33 @@ def confirm_query(user_id: int):
 def confirm_no_photo(user_id: int):
     bot.send_message(user_id,
                      'Понял, не будем фотки искать:)')
+
+
+def confirm_city_ask_price_range(user_id: int):
+    bot.send_message(user_id,
+                     "Город выбрали. Выбирай диапазон цен.\n"
+                     "Напиши просто две цифры через пробел, сначала цену от какой ищем, "
+                     "а потом цену до которой ищем.")
+
+
+def tell_invalid_price_range(user_id: int):
+    bot.send_message(user_id,
+                     "Неверный формат, нужно две цифры, и чтобы первая была меньше второй.\n"
+                     "Попробуй еще раз.")
+
+
+def confirm_price_range_ask_distance_from_centre(user_id: int):
+    bot.send_message(user_id,
+                     "Отлично, диапазон выбран. Какое расстояние от центра нужно?\nНапиши цифру в метрах:\n"
+                     "(Важно, число должно быть целым и больше нуля)")
+
+
+def tell_number_given_is_not_digit(user_id: int):
+    bot.send_message(user_id,
+                     "Неверно. Нужно отправить только цифру, которая больше нуля.")
+
+
+def confirm_distance_ask_amount_of_hotels(user_id: int):
+    bot.send_message(user_id,
+                     "Отлично! Теперь давай решим,сколько тебе отелей показать?\n"
+                     "Только давай не слишком много, не более 10")

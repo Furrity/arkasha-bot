@@ -9,6 +9,8 @@ class UserState(StatesGroup):
     city = State()
     validate_city = State()
     pick_city = State()
+    price_range = State()
+    distance_from_centre = State()
     amount_hotels = State()
     if_photos = State()
     how_many_photos = State()
