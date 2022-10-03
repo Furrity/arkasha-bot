@@ -1,5 +1,4 @@
-from . import (lowprice,
-               highprice,
+from . import (common,
                bestdeal,
                history,
                price)

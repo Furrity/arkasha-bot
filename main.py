@@ -22,7 +22,7 @@ def get_text_messages(message: Message):
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['command'] = 'lowprice'
         bot.set_state(message.from_user.id, UserState.check_in_date, message.chat.id)
-        commands.lowprice.check_in(message)
+        commands.common.check_in(message)
 
     elif message.text == '/bestdeal':
         pass
@@ -31,7 +31,7 @@ def get_text_messages(message: Message):
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['command'] = 'highprice'
         bot.set_state(message.from_user.id, UserState.check_in_date, message.chat.id)
-        commands.highprice.check_in(message)
+        commands.common.check_in(message)
 
     elif message.text == '/history':
         pass
