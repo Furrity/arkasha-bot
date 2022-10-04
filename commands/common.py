@@ -2,7 +2,7 @@ from telebot import types
 from utilities import *
 from states import UserState
 import api
-import price
+import price, bestdeal
 
 
 def check_in(message: types.Message):
@@ -61,10 +61,16 @@ def validate_city_or_ask_amount_of_hotels(message: types.Message):
             data['destinationId'] = options[0]['destinationId']
             data['c_latitude'] = options[0]['latitude']
             data['c_longitude'] = options[0]['longitude']
+            command = data['command']
 
-        bot.set_state(message.from_user.id,
-                      UserState.amount_hotels,
-                      message.chat.id)
+        if command == 'bestdeal':
+            confirm_city_ask_price_range(message.from_user.id)
+            bot.set_state(message.from_user.id, UserState.price_range)
+        else:
+            confirm_city_ask_amount_hotels(message.from_user.id)
+            bot.set_state(message.from_user.id,
+                          UserState.amount_hotels,
+                          message.chat.id)
 
     else:
 
@@ -92,10 +98,17 @@ def pick_city_option_ask_amount_of_hotels(message: types.Message):
             data['c_latitude'] = user_option_dict['latitude']
             data['c_longitude'] = user_option_dict['longitude']
 
-        confirm_city_ask_amount_hotels(message.from_user.id)
-        bot.set_state(message.from_user.id,
-                      UserState.amount_hotels,
-                      message.chat.id)
+            command = data['command']
+
+        if command == 'bestdeal':
+            confirm_city_ask_price_range(message.from_user.id)
+            bot.set_state(message.from_user.id, UserState.price_range)
+        else:
+
+            confirm_city_ask_amount_hotels(message.from_user.id)
+            bot.set_state(message.from_user.id,
+                          UserState.amount_hotels,
+                          message.chat.id)
 
     except IndexError:
         tell_not_a_city_option_chosen(message.from_user.id)
@@ -157,6 +170,14 @@ def get_command_and_give_result(user_id: int, chat_id: int):
 
     if command == 'highprice' or 'lowprice':
         price.give_result(user_id, chat_id)
-        bot.delete_state(user_id, chat_id)
+
+    elif command == 'bestdeal':
+        bestdeal.give_result(user_id, chat_id)
+
+
+    # add commands here
     else:
         raise Exception("Не определена команда вызова.")
+
+    bot.delete_state(user_id, chat_id)
+
