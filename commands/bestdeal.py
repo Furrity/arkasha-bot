@@ -3,6 +3,7 @@ from telebot import types
 from utilities import *
 from loader import bot
 from states import UserState
+import database
 
 
 @bot.message_handler(state=UserState.price_range)
@@ -45,6 +46,7 @@ def give_result(user_id: int, chat_id: int):
         photo_amount = data['photo_amount']
         c_latitude = data['c_latitude']
         c_longitude = data['c_longitude']
+        request_id = data['db_request_id']
 
     hotels: List[dict] = api.best_deal(check_in_date,
                                        check_out_date,
@@ -68,6 +70,10 @@ def give_result(user_id: int, chat_id: int):
         else:
             message += ' Все проживание обойдется в {}.\n'.format(hotel['price_per_stay'])
         message += 'Вот ссылка: ' + hotel['hotel_link']
+
+        # add text to db
+        database.db_worker.add_hotel(request_id, message)
+
         bot.send_message(user_id, message)
         if photo_amount > 0:
             bot.send_media_group(user_id,

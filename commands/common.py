@@ -2,7 +2,8 @@ from telebot import types
 from utilities import *
 from states import UserState
 import api
-import price, bestdeal
+from . import price
+from . import bestdeal
 
 
 def check_in(message: types.Message):
