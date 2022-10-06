@@ -2,6 +2,7 @@ from loader import bot
 from typing import List
 import api
 from telebot import types
+import database
 
 
 def give_result(user_id: int, chat_id: int):
@@ -15,6 +16,8 @@ def give_result(user_id: int, chat_id: int):
         c_longitude = data['c_longitude']
 
         command = data['command']
+
+        request_id = data['db_request_id']
 
     if command == 'highprice':
         hotels: List[dict] = api.get_highprice(check_in_date,
@@ -47,6 +50,9 @@ def give_result(user_id: int, chat_id: int):
         else:
             message += ' Все проживание обойдется в {}.\n'.format(hotel['price_per_stay'])
         message += 'Вот ссылка: ' + hotel['hotel_link']
+
+        database.db_worker.add_hotel(request_id, message)
+
         bot.send_message(user_id, message)
         if photo_amount > 0:
             bot.send_media_group(user_id,
