@@ -3,6 +3,9 @@ import sqlite3
 from datetime import datetime
 
 
+COMMAND_LIST = ['lowprice', 'highprice', 'bestdeal', 'help', 'history']
+
+
 def setup():
     conn = sqlite3.connect('query.db')
 
@@ -17,7 +20,7 @@ def setup():
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS command
-    (command_name TEXT);""")
+    (command_name TEXT UNIQUE);""")
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS query_hotel
@@ -35,13 +38,12 @@ def setup():
 def add_commands():
     conn = sqlite3.connect('query.db')
     cursor = conn.cursor()
-    cursor.execute("""
-    INSERT INTO command VALUES (?), (?), (?), (?), (?);""",
-                   ('lowprice',
-                    'highprice',
-                    'bestdeal',
-                    'help',
-                    'history',))
+
+    for command in COMMAND_LIST:
+
+        cursor.execute("""
+        INSERT OR IGNORE INTO command VALUES (?);""",
+                       (command,))
 
     conn.commit()
     conn.close()
@@ -51,7 +53,7 @@ def add_query(user_id: int, command: str) -> int:
     conn = sqlite3.connect('query.db')
     cursor = conn.cursor()
 
-    cursor.execute("""SELECT rowid FROM command
+    cursor.execute("""SELECT rowid, * FROM command
                        WHERE command_name = ?;""", (command,))
     command_id = cursor.fetchone()[0]
 
@@ -113,6 +115,7 @@ def show_history(user_id: int):
     JOIN command ON command.rowid = user_query.command_rowid
     WHERE user_query.user_id = ?
     ORDER BY user_query.timestamp DESC
+    LIMIT 10;
     """, (user_id,))
     result = cursor.fetchall()
 

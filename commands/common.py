@@ -56,7 +56,6 @@ def validate_city_or_ask_amount_of_hotels(message: types.Message):
         tell_found_no_cities(message.from_user.id)
 
     elif len(options) == 1:
-        confirm_city_ask_amount_hotels(message.from_user.id)
 
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['destinationId'] = options[0]['destinationId']
