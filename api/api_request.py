@@ -3,6 +3,7 @@ from geopy import distance
 import requests
 import json
 from decouple import config
+from typing import List
 
 headers = {
         "X-RapidAPI-Key": config("X-RapidAPI-Key"),
@@ -10,7 +11,8 @@ headers = {
     }
 
 
-def get_city(city_name: str):
+def get_city(city_name: str) -> List[dict]:
+    """Данный метод делает запрос к списку городов. Возвращает список словарей с данными о городах."""
     url = "https://hotels4.p.rapidapi.com/locations/v2/search"
 
     querystring = {"query": city_name, "locale": "ru_RU", "currency": "RUB"}
@@ -40,6 +42,7 @@ def get_lowprice(check_in_date: str,
                  photo_amount: int,
                  c_latitude: float,
                  c_longitude: float):
+    """Данный метод делает запрос к API hotels.com и получает самые дешевые отели по заданным параметрам."""
     url = "https://hotels4.p.rapidapi.com/properties/list"
 
     querystring = {"destinationId": destination_id, "pageNumber": "1", "pageSize": "25", "checkIn": check_in_date,
@@ -70,6 +73,8 @@ def get_highprice(check_in_date: str,
                   photo_amount: int,
                   c_latitude: float,
                   c_longitude: float):
+    """Данный метод делает запрос к API hotels.com и получает самые дорогие отели по заданным параметрам."""
+
     url = "https://hotels4.p.rapidapi.com/properties/list"
 
     querystring = {"destinationId": destination_id, "pageNumber": "1", "pageSize": "25", "checkIn": check_in_date,
@@ -103,6 +108,10 @@ def best_deal(check_in_date: str,
               photo_amount: int,
               c_latitude: float,
               c_longitude: float):
+    """
+    Данный метод делает запрос к API hotels.com и получает самые дешевые отели по заданным параметрам и
+    с необходимым расстоянием от центра.
+    """
 
     url = "https://hotels4.p.rapidapi.com/properties/list"
 
@@ -156,7 +165,11 @@ def parse_result(result: dict,
                  hotels_amount: int,
                  photo_amount: int,
                  c_latitude: float,
-                 c_longitude: float) -> list:
+                 c_longitude: float) -> List[dict]:
+    """
+    Метод получает словарь с результатом запроса к апи и "достает" из них нужные для запроса данные.
+    Возвращает список словарей, где данные об отелях только релевантные для вывода пользователю.
+    """
     options = []
     for option in result['data']['body']['searchResults']["results"][:hotels_amount]:
         # there is a slice of results for easier navigation
@@ -187,23 +200,31 @@ def parse_result(result: dict,
 
 
 def clean_html(text_w_html):
+    """Удаляет из текста HTML тэги и оставляет только текст между ними."""
     import re
     return re.sub(r'<.*?>', '', text_w_html)
 
 
 def calculate_distance(lat_1: float, lon_1: float,
-                       lat_2: float, lon_2: float):
+                       lat_2: float, lon_2: float) -> float:
+    """
+    Рассчитывает расстояние между двумя точками на карте земли.
+    На вход получает 4 числа с плавающей точкой: широта и долгота одной точки и широта и долгота второй точки.
+    Метод возвращает расстояние в метрах.
+    """
     coord_1 = (lat_1, lon_1,)
     coord_2 = (lat_2, lon_2)
     return round(distance.geodesic(coord_1, coord_2).km * 1000, 2)
 
 
-def get_photo_links(city_id: int, amount: int) -> list:
+def get_photo_links(hotel_id: int, amount: int) -> list:
+    """Метод возвращает список со ссылками на фотографии отелей.
+    На вход получает id отеля в системе hotels.com"""
     result = []
 
     url = "https://hotels4.p.rapidapi.com/properties/get-hotel-photos"
 
-    querystring = {"id": str(city_id)}
+    querystring = {"id": str(hotel_id)}
 
     response = requests.request("GET", url, headers=headers, params=querystring)
 
@@ -221,6 +242,7 @@ def get_photo_links(city_id: int, amount: int) -> list:
 
 
 def get_stay_len(check_in: str, check_out: str) -> int:
+    """Метод для подсчета количества дней между датами."""
     check_in_l = check_in.split('-')
     check_out_l = check_out.split('-')
     d1 = date(int(check_in_l[0]), int(check_in_l[1]), int(check_in_l[2]))
@@ -229,5 +251,6 @@ def get_stay_len(check_in: str, check_out: str) -> int:
 
 
 def get_address(option: dict):
+    """Метод для форматирования адреса из json формата."""
     return f"{option['address']['streetAddress']}, {option['address']['locality']}, {option['address']['region']} " \
            f"{option['address']['postalCode']}, {option['address']['countryName']}"

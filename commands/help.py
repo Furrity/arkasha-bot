@@ -3,6 +3,7 @@ from telebot import types
 
 
 def help_command(chat_id: types.Chat, bot: telebot.TeleBot):
+    """Бот отправляет сообщение, где пишет список всех команды."""
     bot.send_message(chat_id.id,
                      "Вот список доступных команд:\n"
                      "/help выводит данное сообщение.\n"

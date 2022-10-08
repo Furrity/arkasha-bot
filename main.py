@@ -7,6 +7,7 @@ import database
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message: Message):
+    """Точка входа в бота. Отсюда пользователь попадает в состояния необходимые для выполнения запросов."""
     if message.text.lower() == 'привет' or message.text == '/hello-world':
         bot.send_message(message.from_user.id, "That's a hello-world message for beginning of a project "
                                                "that is about to happen.")

@@ -4,6 +4,7 @@ from telebot import custom_filters
 
 
 class UserState(StatesGroup):
+    """Класс для состояний пользователя"""
     check_in_date = State()
     check_out_date = State()
     city = State()

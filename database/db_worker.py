@@ -1,12 +1,17 @@
+from typing import List
 from random import randint, choice
 import sqlite3
 from datetime import datetime
 
-
+# сюда прописывать все команды для базы данных
 COMMAND_LIST = ['lowprice', 'highprice', 'bestdeal', 'help', 'history']
 
 
 def setup():
+    """
+    Данный метод создает базу данных, если ее еще нет.
+    Затем наполняет ее нужными таблицами, если они еще не созданы.
+    """
     conn = sqlite3.connect('query.db')
 
     cursor = conn.cursor()
@@ -36,6 +41,7 @@ def setup():
 
 
 def add_commands():
+    """Данный метод заполняет таблицу `command` в базе данных описанными выше командами."""
     conn = sqlite3.connect('query.db')
     cursor = conn.cursor()
 
@@ -50,6 +56,9 @@ def add_commands():
 
 
 def add_query(user_id: int, command: str) -> int:
+    """
+    Сохраняет в таблицу `user_query` запрос пользователя.
+    Возвращает rowid той записи, которая была создана."""
     conn = sqlite3.connect('query.db')
     cursor = conn.cursor()
 
@@ -69,6 +78,7 @@ def add_query(user_id: int, command: str) -> int:
 
 
 def add_hotel(query_id: int, hotel_description: str):
+    """Добавляет отель в таблицу `hotel` и связывает его в таблице `query_hotel`"""
     conn = sqlite3.connect('query.db')
     cursor = conn.cursor()
     cursor.execute("""
@@ -82,7 +92,8 @@ def add_hotel(query_id: int, hotel_description: str):
     conn.close()
 
 
-def select_all():
+def _select_all():
+    """Метод для разработки показывает все строки из таблицы `user_query`"""
     conn = sqlite3.connect('query.db')
 
     cursor = conn.cursor()
@@ -92,7 +103,8 @@ def select_all():
     conn.close()
 
 
-def select_all_command_names():
+def _select_all_command_names():
+    """Метод для разработки. Выводит все строки из таблицы `command`"""
     conn = sqlite3.connect('query.db')
 
     cursor = conn.cursor()
@@ -103,7 +115,14 @@ def select_all_command_names():
     conn.close()
 
 
-def show_history(user_id: int):
+def show_history(user_id: int) -> List[tuple]:
+    """
+    Делает запрос к базе данных.
+    На вход получает id пользователя.
+    Возвращает список. В списке находятся кортежи со следующими данными:
+    [0] Название команды, которую вызвал пользователь
+    [1] Timestamp времени вызова команды.
+    [2] Описание отеля, как это было в сообщении пользователю."""
     conn = sqlite3.connect('query.db')
     cursor = conn.cursor()
 
@@ -124,7 +143,8 @@ def show_history(user_id: int):
     return result
 
 
-def populate_db():
+def _populate_db():
+    """Метод для разработки. Наполняет базу данных случайными записями."""
     for i in range(100):
         user: int = randint(0, 10)
         q = add_query(user, choice(('lowprice', 'highprice', 'bestdeal')))
