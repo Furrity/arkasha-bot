@@ -4,6 +4,7 @@ from datetime import datetime
 
 
 def send_history(user_id: int):
+    """Запрашивает у базы данных отели и отправляет их пользователю."""
     user_history_list: list = db_worker.show_history(user_id)
     for query in user_history_list:
 

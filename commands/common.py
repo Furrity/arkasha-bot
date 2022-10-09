@@ -7,12 +7,14 @@ from . import bestdeal
 
 
 def check_in(message: types.Message):
+    """Метод для запроса даты заезда. И изменения состояния пользователя на "ожидаем дату заезда"."""
     ask_check_in_date(message.from_user.id)
     bot.set_state(message.from_user.id, UserState.check_out_date, message.chat.id)
 
 
 @bot.message_handler(state=UserState.check_out_date)
 def get_check_in_ask_check_out(message: types.Message):
+    """Метод для получения даты заезда и запроса у пользователя даты выезда."""
 
     if not valid_date(message.text):
         ask_valid_date(message.from_user.id)
@@ -34,6 +36,7 @@ def get_check_in_ask_check_out(message: types.Message):
 
 @bot.message_handler(state=UserState.city)
 def get_checkout_ask_city(message: types.Message):
+    """Метод для получения даты выезда и запроса у пользователя города."""
     if not valid_date(message.text):
         ask_valid_date(message.from_user.id)
         return
@@ -51,6 +54,7 @@ def get_checkout_ask_city(message: types.Message):
 
 @bot.message_handler(state=UserState.validate_city)
 def validate_city_or_ask_amount_of_hotels(message: types.Message):
+    """Метод для подтверждения города и запроса у пользователя количества отелей."""
     options: list = api.get_city(message.text)
     if len(options) == 0:
         tell_found_no_cities(message.from_user.id)
@@ -81,6 +85,7 @@ def validate_city_or_ask_amount_of_hotels(message: types.Message):
 
 @bot.message_handler(state=UserState.pick_city)
 def pick_city_option_ask_amount_of_hotels(message: types.Message):
+    """Метод для выбора варианта из списка городов и запроса у пользователя количества отелей."""
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         options: List[dict] = data['options']
 
@@ -116,6 +121,7 @@ def pick_city_option_ask_amount_of_hotels(message: types.Message):
 
 @bot.message_handler(state=UserState.amount_hotels)
 def get_amount_of_hotels_ask_if_photos(message: types.Message):
+    """Метод для получения у пользователя количества отелей и запроса по отправке фотографий."""
     if message.text.isdigit() and 0 < int(message.text) <= 10:
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             data['amount'] = int(message.text)
@@ -127,6 +133,7 @@ def get_amount_of_hotels_ask_if_photos(message: types.Message):
 
 @bot.message_handler(state=UserState.if_photos)
 def get_if_photos(message: types.Message):
+    """Метод для уточнения, принимаем ли фотографии. И если принимаем, то спрашиваем количество фотографий."""
     if message.text.lower().strip() == 'да':
         ask_photo_amount(message.from_user.id)
         bot.set_state(message.from_user.id, UserState.how_many_photos, message.chat.id)
@@ -140,6 +147,7 @@ def get_if_photos(message: types.Message):
 
 @bot.message_handler(state=UserState.how_many_photos)
 def get_photo_amount(message: types.Message):
+    """Метод для получения количества фотографий. И вызова метода отправки результата."""
     if not message.text.isdigit():
         ask_num_1_to_10(message.from_user.id)
         return
@@ -165,6 +173,14 @@ def get_photo_amount(message: types.Message):
 
 
 def get_command_and_give_result(user_id: int, chat_id: int):
+    """
+    Данный метод собирает все данных из того, что запросил у пользователя.
+    С помощью этих данных делается запрос к hotels.com API.
+    От API получается список из словарей с отелями.
+    Из их данных составляется текст сообщений для пользователя.
+    Затем Бот отправляет сообщение, где отправляет данное сообщения и фотографии.
+    Все выведенные отели сохраняются в базе данных
+    """
     with bot.retrieve_data(user_id, chat_id) as data:
         command = data['command']
 
@@ -173,7 +189,6 @@ def get_command_and_give_result(user_id: int, chat_id: int):
 
     elif command == 'bestdeal':
         bestdeal.give_result(user_id, chat_id)
-
 
     # add commands here
     else:

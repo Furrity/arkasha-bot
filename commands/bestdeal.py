@@ -8,6 +8,7 @@ import database
 
 @bot.message_handler(state=UserState.price_range)
 def validate_price_range_ask_distance_to_centre(message: types.Message):
+    """Метод для получения диапазона цен и запроса у пользователя расстояния от отеля до центра."""
     if not valid_price_range(message.text):
         tell_invalid_price_range(message.from_user.id)
         return
@@ -22,6 +23,7 @@ def validate_price_range_ask_distance_to_centre(message: types.Message):
 
 @bot.message_handler(state=UserState.distance_from_centre)
 def confirm_distance_from_centre_ask_amount_of_hotels(message: types.Message):
+    """Метод для подтверждения у пользователя расстояния от отеля от центра"""
     number = message.text.strip()
     if not number.isdigit() and int(number) > 0:
         tell_number_given_is_not_digit(message.from_user.id)
@@ -35,6 +37,7 @@ def confirm_distance_from_centre_ask_amount_of_hotels(message: types.Message):
 
 
 def give_result(user_id: int, chat_id: int):
+    """Метод для отправки """
     with bot.retrieve_data(user_id, chat_id) as data:
         check_in_date = data['check_in']
         check_out_date = data['check_out']
